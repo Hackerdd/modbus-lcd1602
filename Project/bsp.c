@@ -220,7 +220,10 @@ uint8_t modbus_app(uint8_t com_cmds[], uint16_t _usLen, Mb_CMD_Typedef *mbCmd)
 
 void led_init(void)
 {
-    GPIO_Init(GPIOD, GPIO_PIN_3, GPIO_MODE_OUT_PP_LOW_FAST);
+    /* LED引脚初始化 */
+    GPIO_Init(LED_PORT, LED_PIN, GPIO_MODE_OUT_PP_LOW_FAST);
+    /* 485收发引脚初始化 ，初始化为高电平，接收模式*/
+    GPIO_Init(RS485_PORT, RS485_PIN, GPIO_MODE_OUT_PP_HIGH_FAST);
 }
 
 void myiic_init(void)
@@ -260,6 +263,7 @@ void my_uart_init(void)
 
 void uart_send(uint8_t *ptr, uint16_t len)
 {
+    RS485_SEND_EN();
     for (uint16_t i = 0; i < len; i++)
     {
         /* Write a character to the UART1 */
@@ -268,6 +272,9 @@ void uart_send(uint8_t *ptr, uint16_t len)
         while (UART1_GetFlagStatus(UART1_FLAG_TXE) == RESET)
             ;
     }
+    while (UART1_GetFlagStatus(UART1_FLAG_TC) == RESET);
+    
+    RS485_RECEIVE_EN();
 }
 
 void bsp_init(void)
